@@ -1,0 +1,203 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1777654155662,
+  "projectRoot": "/Users/mymac/Workspace/Zama/privacy-staking-pool",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": ">=20.0.0",
+        "confidence": "high",
+        "markers": ["package.json"]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": ["tsconfig.json"]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pnpm",
+    "runtime": "Node.js 20.0.0"
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "pnpm test",
+    "lintCommand": "pnpm lint",
+    "devCommand": "pnpm start",
+    "scripts": {
+      "chain": "./scripts/chain.sh",
+      "deploy:localhost": "./scripts/deploy-localhost.sh",
+      "deploy:sepolia": "./scripts/deploy-sepolia.sh",
+      "generate": "ts-node ./scripts/generateTsAbis.ts",
+      "postinstall": "ts-node ./scripts/generateTsAbis.ts || true",
+      "contracts:install": "cd packages/foundry && forge soldeer install",
+      "contracts:build": "cd packages/foundry && forge build",
+      "contracts:test": "cd packages/foundry && forge test -vv",
+      "compile": "cd packages/foundry && forge build",
+      "test": "cd packages/foundry && forge test",
+      "start": "pnpm --filter ./packages/nextjs dev",
+      "format": "prettier --write .",
+      "format:check": "prettier --check .",
+      "lint": "pnpm next:lint",
+      "next:build": "pnpm --filter ./packages/nextjs build",
+      "next:check-types": "pnpm --filter ./packages/nextjs check-types",
+      "next:lint": "pnpm --filter ./packages/nextjs lint",
+      "next:serve": "pnpm --filter ./packages/nextjs serve",
+      "vercel": "pnpm --filter ./packages/nextjs vercel",
+      "vercel:login": "pnpm --filter ./packages/nextjs vercel:login",
+      "vercel:yolo": "pnpm --filter ./packages/nextjs vercel:yolo",
+      "prepare": "husky"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": true,
+    "workspaces": ["packages/*"],
+    "mainDirectories": ["scripts"],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "packages": {
+      "path": "packages",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1777654155640,
+      "keyFiles": []
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 4,
+      "lastAccessed": 1777654155641,
+      "keyFiles": ["chain.sh", "deploy-localhost.sh", "deploy-sepolia.sh", "generateTsAbis.ts"]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "packages/foundry/script/FullFlowTest.s.sol",
+      "accessCount": 5,
+      "lastAccessed": 1777680693325,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/src/PrivacyStakingPool.sol",
+      "accessCount": 3,
+      "lastAccessed": 1777808653982,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/foundry.toml",
+      "accessCount": 1,
+      "lastAccessed": 1777655918235,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/remappings.txt",
+      "accessCount": 1,
+      "lastAccessed": 1777655918825,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 1,
+      "lastAccessed": 1777655919140,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/src/FHECounter.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777655922462,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/test/FHECounter.t.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777655923024,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/script/DeployFHECounter.s.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777655923422,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/dependencies/@openzeppelin-confidential-contracts-6edd293/contracts/token/ERC7984/ERC7984.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777655931661,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/dependencies/@openzeppelin-confidential-contracts-6edd293/contracts/interfaces/IERC7984.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777655932148,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/dependencies/@fhevm-solidity-0.11.1/lib/FheType.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777655933072,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/dependencies/@encrypted-types-0.0.4/EncryptedTypes.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777655933576,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/dependencies/@openzeppelin-confidential-contracts-6edd293/contracts/utils/FHESafeMath.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777655946061,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/dependencies/@fhevm-solidity-0.11.1/lib/FHE.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777655953009,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/dependencies/forge-fhevm-eba2324/test/FhevmTest.publicDecrypt.t.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777655954030,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/dependencies/@openzeppelin-confidential-contracts-6edd293/contracts/mocks/token/ERC7984Mock.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777656383429,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/script/DeployPrivacyStakingPool.s.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777656879800,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/test/PrivacyStakingPool.t.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777657076164,
+      "type": "file"
+    },
+    {
+      "path": "packages/foundry/dependencies/forge-fhevm-eba2324/src/HCULimitNoDepthCap.sol",
+      "accessCount": 1,
+      "lastAccessed": 1777680555947,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

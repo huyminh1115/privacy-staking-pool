@@ -1,0 +1,11 @@
+{
+  "id": "1",
+  "subject": "You are working in /Users/mymac/Workspace/Zama/privacy-staking-pool — a Foundry ",
+  "description": "You are working in /Users/mymac/Workspace/Zama/privacy-staking-pool — a Foundry project using Zama fhEVM for FHE-encrypted staking.\n\nThe main contract is already implemented at packages/foundry/src/PrivacyStakingPool.sol. Your job:\n\n1. Write packages/foundry/test/PrivacyStakingPool.t.sol — comprehensive Foundry tests using FhevmTest base class. The test infrastructure is at forge-fhevm (see packages/foundry/dependencies/forge-fhevm-eba2324/src/FhevmTest.sol). Use ERC7984Mock from @openzeppelin/confidential-contracts/mocks/token/ERC7984Mock.sol for mock tokens. See the existing test at packages/foundry/test/FHECounter.t.sol for patterns. Tests must cover:\n   - Pool initialization (creator funds pool with encrypted budget + interval reward)\n   - Staking (user encrypts amount, stakes via pool)\n   - Full distribution cycle (3 phases: distribute → fulfillDenominator → fulfillIndexDelta)\n   - Claiming rewards\n   - Unstaking\n   - Edge cases: empty pool distribution skip, not-idle revert, interval timing\n\n   Key test helpers: encryptUint64(value, user, target), publicDecrypt(handles), userDecrypt(handle, user, contract, sig), signUserDecrypt(pk, contract). Users must call stakeToken.setOperator(pool, type(uint48).max) before staking. Creator must call rewardToken.setOperator(pool, type(uint48).max) before initialize.\n\n2. Write packages/foundry/script/DeployPrivacyStakingPool.s.sol — simple Foundry deploy script.\n\n3. Run 'cd packages/foundry && forge build' to verify everything compiles. Fix any errors.\n\nImportant: Read the existing PrivacyStakingPool.sol, FHECounter.t.sol, FhevmTest.sol, and ERC7984Mock.sol first to understand the APIs and patterns before writing code.",
+  "status": "completed",
+  "owner": "worker-1",
+  "result": null,
+  "created_at": "2026-05-01T17:33:52.100Z",
+  "version": 3,
+  "completed_at": "2026-05-01T17:40:12.881Z"
+}

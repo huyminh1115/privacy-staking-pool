@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd /Users/mymac/Workspace/Zama/privacy-staking-pool/packages/foundry && forge build 2>&1\",\"timeout\":120000,\"description\":\"Build foundry contracts\"}",
+  "error": "Exit code 1\nWarning: This is a nightly build of Foundry. It is recommended to use the latest stable version. To mute this warning set `FOUNDRY_DISABLE_NIGHTLY_WARNING` in your environment. \n\nCompiling 87 files with Solc 0.8.27\nSolc 0.8.27 finished in 857.19ms\nError: Compiler run failed:\nError (9767): Built-in unary operator delete cannot be applied to type euint128.\n   --> src/PrivacyStakingPool.sol:335:9:\n    |\n335 |         delete _pendingNumBlinded;\n    |         ^^^^^^^^^^^^^^^^^^^^^^^^^",
+  "timestamp": "2026-05-01T17:34:54.428Z",
+  "retry_count": 1
+}

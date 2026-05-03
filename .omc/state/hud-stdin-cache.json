@@ -1,0 +1,38 @@
+{
+  "session_id": "c2b98972-6982-44b4-9598-ce184f49571f",
+  "transcript_path": "/Users/mymac/.claude/projects/-Users-mymac-Workspace-Zama-privacy-staking-pool/c2b98972-6982-44b4-9598-ce184f49571f.jsonl",
+  "cwd": "/Users/mymac/Workspace/Zama/privacy-staking-pool/packages/foundry",
+  "session_name": "Monitor Codex test file creation",
+  "model": { "id": "claude-opus-4-6", "display_name": "Opus 4.6" },
+  "workspace": {
+    "current_dir": "/Users/mymac/Workspace/Zama/privacy-staking-pool/packages/foundry",
+    "project_dir": "/Users/mymac/Workspace/Zama/privacy-staking-pool",
+    "added_dirs": []
+  },
+  "version": "2.1.126",
+  "output_style": { "name": "default" },
+  "cost": {
+    "total_cost_usd": 12.146168249999997,
+    "total_duration_ms": 154422406,
+    "total_api_duration_ms": 1396566,
+    "total_lines_added": 793,
+    "total_lines_removed": 173
+  },
+  "context_window": {
+    "total_input_tokens": 9585,
+    "total_output_tokens": 77416,
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 3,
+      "output_tokens": 24,
+      "cache_creation_input_tokens": 624,
+      "cache_read_input_tokens": 140346
+    },
+    "used_percentage": 70,
+    "remaining_percentage": 30
+  },
+  "exceeds_200k_tokens": false,
+  "fast_mode": false,
+  "effort": { "level": "high" },
+  "thinking": { "enabled": true }
+}

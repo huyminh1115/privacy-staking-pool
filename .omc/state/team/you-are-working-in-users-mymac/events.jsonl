@@ -1,0 +1,2 @@
+{"event_id":"3eb74fe3-885a-488d-a156-233a929540ba","team":"you-are-working-in-users-mymac","created_at":"2026-05-01T17:33:55.806Z","type":"team_leader_nudge","worker":"leader-fixed","reason":"start_team_v2: workers=1 tasks=1 panes=1"}
+{"event_id":"f585484c-a2fa-4b4a-b000-07e9dab4a537","team":"you-are-working-in-users-mymac","created_at":"2026-05-01T17:40:12.883Z","type":"task_completed","worker":"worker-1","task_id":"1","message_id":null}

@@ -1,0 +1,11 @@
+{
+  "active": true,
+  "current_phase": "team-exec",
+  "task_description": "Codex worker: write PrivacyStakingPool test + deploy script, verify compilation",
+  "_meta": {
+    "mode": "omc-teams",
+    "sessionId": null,
+    "updatedAt": "2026-05-01T17:33:33.253Z",
+    "updatedBy": "state_write_tool"
+  }
+}

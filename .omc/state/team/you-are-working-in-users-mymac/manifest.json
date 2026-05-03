@@ -1,0 +1,53 @@
+{
+  "schema_version": 2,
+  "name": "you-are-working-in-users-mymac",
+  "task": "You are working in /Users/mymac/Workspace/Zama/privacy-staking-pool — a Foundry ",
+  "leader": {
+    "session_id": "0:0",
+    "worker_id": "leader-fixed",
+    "role": "leader"
+  },
+  "policy": {
+    "display_mode": "split_pane",
+    "worker_launch_mode": "interactive",
+    "dispatch_mode": "hook_preferred_with_fallback",
+    "dispatch_ack_timeout_ms": 15000
+  },
+  "governance": {
+    "delegation_only": false,
+    "plan_approval_required": false,
+    "nested_teams_allowed": false,
+    "one_team_per_leader_session": true,
+    "cleanup_requires_all_workers_inactive": true
+  },
+  "permissions_snapshot": {
+    "approval_mode": "default",
+    "sandbox_mode": "default",
+    "network_access": false
+  },
+  "tmux_session": "0:0",
+  "worker_count": 1,
+  "workers": [
+    {
+      "name": "worker-1",
+      "index": 1,
+      "role": "codex",
+      "assigned_tasks": ["1"],
+      "working_dir": "/Users/mymac/Workspace/Zama/privacy-staking-pool",
+      "team_state_root": "/Users/mymac/Workspace/Zama/privacy-staking-pool/.omc/state/team/you-are-working-in-users-mymac",
+      "pane_id": "%8",
+      "worker_cli": "codex",
+      "output_file": "/Users/mymac/Workspace/Zama/privacy-staking-pool/.omc/state/team/you-are-working-in-users-mymac/workers/worker-1/verdict.json"
+    }
+  ],
+  "next_task_id": 2,
+  "created_at": "2026-05-01T17:33:52.460Z",
+  "leader_cwd": "/Users/mymac/Workspace/Zama/privacy-staking-pool",
+  "team_state_root": "/Users/mymac/Workspace/Zama/privacy-staking-pool/.omc/state/team/you-are-working-in-users-mymac",
+  "workspace_mode": "single",
+  "worktree_mode": "disabled",
+  "leader_pane_id": "%0",
+  "hud_pane_id": null,
+  "resize_hook_name": null,
+  "resize_hook_target": null
+}

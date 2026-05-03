@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"forge test --match-contract FullFlowTest -vv 2>&1\",\"timeout\":300000,\"description\":\"Run the split full flow tests\"}",
+  "error": "Exit code 1\nWarning: This is a nightly build of Foundry. It is recommended to use the latest stable version. To mute this warning set `FOUNDRY_DISABLE_NIGHTLY_WARNING` in your environment. \n\nCompiling 1 files with Solc 0.8.27\nSolc 0.8.27 finished in 3.11s\nCompiler run successful!\n\nRan 2 tests for script/FullFlowTest.s.sol:FullFlowTest\n[PASS] test_flow_part1_stakeDistributeClaimUnstake() (gas: 7605390)\nLogs:\n  === Part 1: Stake, Distribute, Claim, Unstake ===\n  Minted 5000 STK to alice & bob, 500...",
+  "timestamp": "2026-05-02T00:10:31.571Z",
+  "retry_count": 1
+}
