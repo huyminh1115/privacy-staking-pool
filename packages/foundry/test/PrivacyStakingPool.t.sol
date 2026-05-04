@@ -14,11 +14,13 @@ contract PrivacyStakingPoolTest is FhevmTest {
 
     uint64 internal constant INITIAL_REWARD_BUDGET = 1_000;
     uint64 internal constant INTERVAL_REWARD = 10;
+    uint64 internal constant CREATOR_INITIAL_STAKE = 1;
     uint64 internal constant ALICE_STAKE = 100;
     uint64 internal constant BOB_STAKE = 300;
     uint256 internal constant INTERVAL = 6 hours;
     uint256 internal constant DEFAULT_INTERVAL_COUNT = 100;
     uint256 internal constant INDEX_SCALE = 1e12;
+    uint256 internal constant PRICE_SCALE = 1e6;
 
     ERC7984Mock internal stakeToken;
     ERC7984Mock internal rewardToken;
@@ -45,14 +47,16 @@ contract PrivacyStakingPoolTest is FhevmTest {
         rewardToken = new ERC7984Mock("Reward Token", "RWD", "ipfs://reward");
 
         vm.prank(creator);
-        pool = new PrivacyStakingPool(IERC7984(address(stakeToken)), IERC7984(address(rewardToken)));
+        pool = new PrivacyStakingPool(creator, IERC7984(address(stakeToken)), IERC7984(address(rewardToken)));
 
+        _mint(stakeToken, creator, 100);
         _mint(stakeToken, alice, 1_000);
         _mint(stakeToken, bob, 1_000);
         _mint(rewardToken, creator, 5_000);
     }
 
     function test_initializeFundsPoolAndSetsRewardConfig() public {
+        uint64 creatorStakeBalanceBefore = _decryptTokenBalance(stakeToken, CREATOR_PK, creator);
         uint64 creatorRewardBalanceBefore = _decryptTokenBalance(rewardToken, CREATOR_PK, creator);
 
         uint256 startTime = block.timestamp;
@@ -65,6 +69,11 @@ contract PrivacyStakingPoolTest is FhevmTest {
         assertEq(pool.poolEndTime(), endTime);
         assertEq(pool.lastDistributionTimestamp(), startTime);
         assertEq(uint256(pool.distState()), uint256(PrivacyStakingPool.DistState.Idle));
+        assertEq(_decryptUserStake(CREATOR_PK, creator), CREATOR_INITIAL_STAKE);
+        assertEq(_decryptTotalStaked(), CREATOR_INITIAL_STAKE);
+        assertEq(
+            _decryptTokenBalance(stakeToken, CREATOR_PK, creator), creatorStakeBalanceBefore - CREATOR_INITIAL_STAKE
+        );
         assertEq(
             _decryptTokenBalance(rewardToken, CREATOR_PK, creator), creatorRewardBalanceBefore - INITIAL_REWARD_BUDGET
         );
@@ -78,7 +87,7 @@ contract PrivacyStakingPoolTest is FhevmTest {
 
         assertEq(_decryptUserStake(ALICE_PK, alice), ALICE_STAKE);
         assertEq(_decryptTokenBalance(stakeToken, ALICE_PK, alice), aliceStakeBalanceBefore - ALICE_STAKE);
-        assertEq(_decryptTotalStaked(), ALICE_STAKE);
+        assertEq(_decryptTotalStaked(), CREATOR_INITIAL_STAKE + ALICE_STAKE);
         assertEq(pool.getUserIndex(alice), 0);
     }
 
@@ -88,22 +97,26 @@ contract PrivacyStakingPoolTest is FhevmTest {
 
         uint256 indexDelta = _runDistributionCycle();
 
-        assertEq(indexDelta, uint256(INTERVAL_REWARD) * INDEX_SCALE / ALICE_STAKE);
+        assertEq(indexDelta, uint256(INTERVAL_REWARD) * INDEX_SCALE / (CREATOR_INITIAL_STAKE + ALICE_STAKE));
         assertEq(pool.lastIntervalIndexDelta(), indexDelta);
         assertEq(pool.cumulativeIndex(), indexDelta);
+        assertEq(pool.getAPRRaw(), indexDelta * 1460);
         assertEq(pool.getAPR(), indexDelta * 1460);
 
         uint64 rewardBalanceBefore = _decryptTokenBalance(rewardToken, ALICE_PK, alice);
         vm.prank(alice);
         pool.claim();
 
-        assertEq(_decryptTokenBalance(rewardToken, ALICE_PK, alice), rewardBalanceBefore + INTERVAL_REWARD);
+        assertEq(
+            _decryptTokenBalance(rewardToken, ALICE_PK, alice),
+            rewardBalanceBefore + uint64((uint256(ALICE_STAKE) * indexDelta) / INDEX_SCALE)
+        );
 
         uint64 stakeBalanceBefore = _decryptTokenBalance(stakeToken, ALICE_PK, alice);
         _unstake(alice, 40);
 
         assertEq(_decryptUserStake(ALICE_PK, alice), ALICE_STAKE - 40);
-        assertEq(_decryptTotalStaked(), ALICE_STAKE - 40);
+        assertEq(_decryptTotalStaked(), CREATOR_INITIAL_STAKE + ALICE_STAKE - 40);
         assertEq(_decryptTokenBalance(stakeToken, ALICE_PK, alice), stakeBalanceBefore + 40);
     }
 
@@ -114,7 +127,7 @@ contract PrivacyStakingPoolTest is FhevmTest {
 
         uint256 indexDelta = _runDistributionCycle();
 
-        assertEq(indexDelta, uint256(INTERVAL_REWARD) * INDEX_SCALE / (ALICE_STAKE + BOB_STAKE));
+        assertEq(indexDelta, uint256(INTERVAL_REWARD) * INDEX_SCALE / (CREATOR_INITIAL_STAKE + ALICE_STAKE + BOB_STAKE));
 
         uint64 aliceRewardBalanceBefore = _decryptTokenBalance(rewardToken, ALICE_PK, alice);
         uint64 bobRewardBalanceBefore = _decryptTokenBalance(rewardToken, BOB_PK, bob);
@@ -128,31 +141,41 @@ contract PrivacyStakingPoolTest is FhevmTest {
         assertEq(_decryptTokenBalance(rewardToken, BOB_PK, bob), bobRewardBalanceBefore + 7);
     }
 
-    function test_emptyPoolDistributionSkipsRewardAndResetsState() public {
+    function test_creatorOnlyStakeDistributionAccruesRewards() public {
         _initializePool(INITIAL_REWARD_BUDGET, block.timestamp, block.timestamp + INTERVAL * DEFAULT_INTERVAL_COUNT);
 
         uint256 lastTimestampBefore = pool.lastDistributionTimestamp();
         vm.warp(lastTimestampBefore + INTERVAL);
 
-        vm.prank(alice);
         pool.distribute();
 
-        (bytes32 denHandle, bytes32 isEmptyHandle, bytes32 indexDeltaHandleBefore) = pool.getPendingHandles();
-        assertEq(indexDeltaHandleBefore, bytes32(0));
+        (bytes32 denHandle, bytes32 isEmptyHandle,) = pool.getPendingHandles();
 
         bytes32[] memory handles = new bytes32[](2);
         handles[0] = denHandle;
         handles[1] = isEmptyHandle;
         (uint256[] memory cleartexts, bytes memory proof) = publicDecrypt(handles);
 
-        vm.prank(bob);
         pool.fulfillDenominator(cleartexts, proof);
 
-        (,, bytes32 indexDeltaHandleAfter) = pool.getPendingHandles();
-        assertEq(indexDeltaHandleAfter, bytes32(0));
-        assertEq(pool.lastIntervalIndexDelta(), 0);
+        (,, bytes32 indexDeltaHandle) = pool.getPendingHandles();
+        assertTrue(indexDeltaHandle != bytes32(0));
+
+        bytes32[] memory phase2Handles = new bytes32[](1);
+        phase2Handles[0] = indexDeltaHandle;
+        (uint256[] memory phase2Cleartexts, bytes memory phase2Proof) = publicDecrypt(phase2Handles);
+        pool.fulfillIndexDelta(phase2Cleartexts, phase2Proof);
+
+        assertEq(phase2Cleartexts[0], uint256(INTERVAL_REWARD) * INDEX_SCALE / CREATOR_INITIAL_STAKE);
+        assertEq(pool.lastIntervalIndexDelta(), phase2Cleartexts[0]);
         assertEq(pool.lastDistributionTimestamp(), block.timestamp);
+        assertEq(pool.cumulativeIndex(), phase2Cleartexts[0]);
         assertEq(uint256(pool.distState()), uint256(PrivacyStakingPool.DistState.Idle));
+
+        uint64 creatorRewardBalanceBefore = _decryptTokenBalance(rewardToken, CREATOR_PK, creator);
+        vm.prank(creator);
+        pool.claim();
+        assertEq(_decryptTokenBalance(rewardToken, CREATOR_PK, creator), creatorRewardBalanceBefore + INTERVAL_REWARD);
     }
 
     function test_notIdleRevertsDuringDistribution() public {
@@ -198,11 +221,13 @@ contract PrivacyStakingPoolTest is FhevmTest {
     function _initializePool(uint64 budget, uint256 startTime, uint256 endTime) internal {
         vm.prank(creator);
         rewardToken.setOperator(address(pool), type(uint48).max);
+        vm.prank(creator);
+        stakeToken.setOperator(address(pool), type(uint48).max);
 
         (externalEuint64 budgetInput, bytes memory budgetProof) = encryptUint64(budget, creator, address(pool));
 
         vm.prank(creator);
-        pool.initialize(budgetInput, budgetProof, startTime, endTime);
+        pool.initialize(budgetInput, budgetProof, startTime, endTime, PRICE_SCALE);
     }
 
     function _stake(address user, uint64 amount) internal {

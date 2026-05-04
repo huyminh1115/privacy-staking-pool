@@ -18,9 +18,11 @@ contract FullFlowTest is FhevmTest {
 
     uint64 internal constant REWARD_BUDGET = 10_000;
     uint64 internal constant INTERVAL_REWARD = 100;
+    uint64 internal constant CREATOR_INITIAL_STAKE = 1;
     uint256 internal constant INTERVAL = 6 hours;
     uint256 internal constant DEFAULT_INTERVAL_COUNT = 100;
     uint256 internal constant INDEX_SCALE = 1e12;
+    uint256 internal constant PRICE_SCALE = 1e6;
 
     ERC7984Mock stakeToken;
     ERC7984Mock rewardToken;
@@ -45,8 +47,9 @@ contract FullFlowTest is FhevmTest {
         vm.prank(creator);
         rewardToken = new ERC7984Mock("Reward Token", "RWD", "ipfs://reward");
         vm.prank(creator);
-        pool = new PrivacyStakingPool(IERC7984(address(stakeToken)), IERC7984(address(rewardToken)));
+        pool = new PrivacyStakingPool(creator, IERC7984(address(stakeToken)), IERC7984(address(rewardToken)));
 
+        _mint(stakeToken, creator, 100);
         _mint(stakeToken, alice, 5_000);
         _mint(stakeToken, bob, 5_000);
         _mint(rewardToken, creator, 50_000);
@@ -65,9 +68,10 @@ contract FullFlowTest is FhevmTest {
 
         uint256 indexDelta = _runDistributionCycle();
         console.log("Index delta:", indexDelta);
-        console.log("Expected:", uint256(INTERVAL_REWARD) * INDEX_SCALE / 1000);
+        console.log("Expected:", uint256(INTERVAL_REWARD) * INDEX_SCALE / (1000 + CREATOR_INITIAL_STAKE));
         console.log("Cumulative index:", pool.cumulativeIndex());
-        console.log("APR (raw):", pool.getAPR());
+        console.log("APR (raw):", pool.getAPRRaw());
+        console.log("APR:", pool.getAPR());
 
         vm.prank(alice);
         pool.claim();
@@ -86,12 +90,12 @@ contract FullFlowTest is FhevmTest {
     function test_scenario2_emptyPoolDistributionSkips() public {
         console.log("=== Scenario 2: Empty Pool Distribution ===");
 
-        // Stake and immediately unstake to have an empty pool
+        // Stake and immediately unstake to leave only the creator's seeded stake
         _stake(alice, 100);
         _unstake(alice, 100);
-        console.log("Total staked (expect 0):", _decryptTotalStaked());
+        console.log("Total staked (expect 1):", _decryptTotalStaked());
 
-        // Trigger distribution on empty pool
+        // Trigger distribution with only the creator's seeded stake
         vm.warp(pool.lastDistributionTimestamp() + INTERVAL);
         pool.distribute();
 
@@ -102,12 +106,15 @@ contract FullFlowTest is FhevmTest {
         (uint256[] memory cleartexts, bytes memory proof) = publicDecrypt(handles);
         pool.fulfillDenominator(cleartexts, proof);
 
-        console.log("Dist state (0=Idle):", uint256(pool.distState()));
-        console.log("Last delta (expect 0):", pool.lastIntervalIndexDelta());
-        console.log("Cumulative index (expect 0):", pool.cumulativeIndex());
+        (,, bytes32 indexDeltaHandle) = pool.getPendingHandles();
+        bytes32[] memory phase2Handles = new bytes32[](1);
+        phase2Handles[0] = indexDeltaHandle;
+        (uint256[] memory phase2Cleartexts, bytes memory phase2Proof) = publicDecrypt(phase2Handles);
+        pool.fulfillIndexDelta(phase2Cleartexts, phase2Proof);
 
-        // Verify reward budget unchanged by decrypting it
-        console.log("Pool still idle, no reward deducted");
+        console.log("Dist state (0=Idle):", uint256(pool.distState()));
+        console.log("Last delta (expect 100e12):", pool.lastIntervalIndexDelta());
+        console.log("Cumulative index (expect 100e12):", pool.cumulativeIndex());
         console.log("=== Scenario 2 complete ===");
     }
 
@@ -122,7 +129,7 @@ contract FullFlowTest is FhevmTest {
 
         uint256 indexDelta = _runDistributionCycle();
         console.log("Index delta:", indexDelta);
-        console.log("Expected:", uint256(INTERVAL_REWARD) * INDEX_SCALE / 1000);
+        console.log("Expected:", uint256(INTERVAL_REWARD) * INDEX_SCALE / (1000 + CREATOR_INITIAL_STAKE));
 
         vm.prank(alice);
         pool.claim();
@@ -147,9 +154,11 @@ contract FullFlowTest is FhevmTest {
     function _initializePool(uint64 budget, uint256 startTime, uint256 endTime) internal {
         vm.prank(creator);
         rewardToken.setOperator(address(pool), type(uint48).max);
+        vm.prank(creator);
+        stakeToken.setOperator(address(pool), type(uint48).max);
         (externalEuint64 budgetInput, bytes memory budgetProof) = encryptUint64(budget, creator, address(pool));
         vm.prank(creator);
-        pool.initialize(budgetInput, budgetProof, startTime, endTime);
+        pool.initialize(budgetInput, budgetProof, startTime, endTime, PRICE_SCALE);
     }
 
     function _stake(address user, uint64 amount) internal {

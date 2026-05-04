@@ -25,7 +25,9 @@ contract PrivacyStakingPool is ZamaEthereumConfig, ReentrancyGuard {
     // =========================================================================
 
     uint256 public constant INDEX_SCALE = 1e12;
+    uint256 public constant PRICE_SCALE = 1e6;
     uint256 public constant INTERVAL = 6 hours;
+    uint64 public constant CREATOR_INITIAL_STAKE = 1;
     uint64 public constant R_MIN = uint64(1) << 32; // 2^32
     uint64 public constant R_MAX_BOUND = uint64(1) << 48; // 2^48, must be power-of-2 for randBounded
 
@@ -48,6 +50,7 @@ contract PrivacyStakingPool is ZamaEthereumConfig, ReentrancyGuard {
     uint256 public lastDistributionTimestamp;
     uint256 public poolStartTime;
     uint256 public poolEndTime;
+    uint256 public stakeToRewardRatio;
     mapping(address => uint256) private _userIndex;
 
     // =========================================================================
@@ -118,8 +121,8 @@ contract PrivacyStakingPool is ZamaEthereumConfig, ReentrancyGuard {
     //  Constructor
     // =========================================================================
 
-    constructor(IERC7984 stakeToken_, IERC7984 rewardToken_) {
-        creator = msg.sender;
+    constructor(address creator_, IERC7984 stakeToken_, IERC7984 rewardToken_) {
+        creator = creator_;
         stakeToken = stakeToken_;
         rewardToken = rewardToken_;
     }
@@ -134,11 +137,13 @@ contract PrivacyStakingPool is ZamaEthereumConfig, ReentrancyGuard {
     /// @param budgetProof_       Input proof for the budget ciphertext
     /// @param startTime_         Plaintext timestamp when the pool starts distributing
     /// @param endTime_           Plaintext timestamp when the pool stops distributing
+    /// @param stakeToRewardRatio_ Price ratio: reward tokens per 1 stake token, scaled by PRICE_SCALE (1e6)
     function initialize(
         externalEuint64 totalRewardBudget_,
         bytes calldata budgetProof_,
         uint256 startTime_,
-        uint256 endTime_
+        uint256 endTime_,
+        uint256 stakeToRewardRatio_
     ) external {
         require(msg.sender == creator, NotCreator());
         require(!_initialized, AlreadyInitialized());
@@ -157,6 +162,14 @@ contract PrivacyStakingPool is ZamaEthereumConfig, ReentrancyGuard {
         _rewardBudget = FHE.allowThis(transferred);
         poolStartTime = startTime_;
         poolEndTime = endTime_;
+        stakeToRewardRatio = stakeToRewardRatio_;
+
+        euint64 creatorStake = FHE.allowThis(FHE.allow(FHE.asEuint64(CREATOR_INITIAL_STAKE), msg.sender));
+        FHE.allow(creatorStake, address(stakeToken));
+        stakeToken.confidentialTransferFrom(msg.sender, address(this), creatorStake);
+        _userStake[msg.sender] = FHE.allowThis(FHE.allow(creatorStake, msg.sender));
+        _totalStaked = FHE.allowThis(creatorStake);
+        _userIndex[msg.sender] = 0;
 
         lastDistributionTimestamp = startTime_;
         emit Initialized(msg.sender);
@@ -389,9 +402,22 @@ contract PrivacyStakingPool is ZamaEthereumConfig, ReentrancyGuard {
         return (_pendingDenHandle, _pendingIsEmptyHandle, _pendingIndexDeltaHandle);
     }
 
-    /// @notice Annualized return based on the last interval's index delta.
-    ///         APR = lastIntervalIndexDelta * (365 days / INTERVAL) / INDEX_SCALE
-    function getAPR() external view returns (uint256) {
+    /// @notice Annualized reward rate without any price conversion.
+    /// @dev Returns the legacy APR numerator in reward-token terms.
+    function getAPRRaw() public view returns (uint256) {
         return lastIntervalIndexDelta * 1460;
+    }
+
+    /// @notice Annualized return converted into stake-token value terms using the stored price ratio.
+    /// @dev APR = getAPRRaw() * stakeToRewardRatio / PRICE_SCALE.
+    function getAPR() external view returns (uint256) {
+        return getAPRRaw() * stakeToRewardRatio / PRICE_SCALE;
+    }
+
+    /// @notice Update the stake-to-reward token price ratio. Creator only.
+    /// @param stakeToRewardRatio_ How many reward tokens equal 1 stake token, scaled by `PRICE_SCALE`.
+    function setStakeToRewardRatio(uint256 stakeToRewardRatio_) external {
+        require(msg.sender == creator, NotCreator());
+        stakeToRewardRatio = stakeToRewardRatio_;
     }
 }
